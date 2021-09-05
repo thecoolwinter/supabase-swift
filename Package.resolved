@@ -15,7 +15,7 @@
         "repositoryURL": "https://github.com/supabase/postgrest-swift",
         "state": {
           "branch": "master",
-          "revision": "b55a5b8646c397eb4dbc368e309e7cb04a5b281f",
+          "revision": "7462c72e73b44b9ccee1dd7c6d261a2c7336ec6b",
           "version": null
         }
       },
@@ -24,7 +24,7 @@
         "repositoryURL": "https://github.com/supabase/realtime-swift.git",
         "state": {
           "branch": "main",
-          "revision": "e3d06ee66ba6d2e7722ee1a580b613ed2456ed44",
+          "revision": "242acdcbbf8c4f063c114831a3e7820c4dbf61a6",
           "version": null
         }
       },

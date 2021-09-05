@@ -18,6 +18,9 @@ import SupabaseStorage
  For more usage information read the README.md
  */
 public class SupabaseClient {
+    
+    // MARK: - Properties
+    
     private var supabaseUrl: String
     private var supabaseKey: String
     private var schema: String
@@ -25,6 +28,8 @@ public class SupabaseClient {
     private var realtimeUrl: String
     private var authUrl: String
     private var storageUrl: String
+    
+    // MARK: - Clients
     
     /// Auth client for Supabase
     public var auth: GoTrueClient
@@ -45,9 +50,11 @@ public class SupabaseClient {
         return PostgrestClient(url: restUrl, headers: headers, schema: schema)
     }
     
-    /// Realtime client for Supabase
-    private var realtime: RealtimeClient
+    private var realtimeClient: RealtimeClient {
+        return RealtimeClient(endPoint: realtimeUrl, params: ["apikey": supabaseKey])
+    }
     
+    // MARK: - Init
     /// Init `Supabase` with the provided parameters.
     /// - Parameters:
     ///   - supabaseUrl: Unique Supabase project url
@@ -58,7 +65,8 @@ public class SupabaseClient {
         supabaseUrl: String,
         supabaseKey: String,
         schema: String = "public",
-        autoRefreshToken: Bool = true
+        autoRefreshToken: Bool = true,
+        listenForAuthChanges: Bool = false
     ) {
         self.supabaseUrl = supabaseUrl
         self.supabaseKey = supabaseKey
@@ -73,6 +81,34 @@ public class SupabaseClient {
             headers: ["apikey": supabaseKey],
             autoRefreshToken: autoRefreshToken
         )
-        realtime = RealtimeClient(endPoint: realtimeUrl, params: ["apikey": supabaseKey])
+        
+        if listenForAuthChanges {
+            setUpAuthListener()
+        }
+    }
+    
+    // MARK: - Auth state listener
+    
+    private var authStateListener: ((AuthChangeEvent) -> Void)? = nil
+    
+    /// Set up a state change listener to update the database and storage auth headers
+    private func setUpAuthListener() {
+        authStateListener = { [weak self] event in
+            self?.updateClientHeaders()
+        }
+        auth.onAuthStateChange = authStateListener
+    }
+    
+    /// Updates the database and storage client's auth header
+    private func updateClientHeaders() {
+        database.config.headers["Authorization"] = "Bearer \(auth.session?.accessToken ?? supabaseKey)"
+        storage.config.headers["Authorization"] = "Bearer \(auth.session?.accessToken ?? supabaseKey)"
+    }
+    
+    // MARK: - Deinit
+    
+    deinit {
+        authStateListener = nil
+        auth.onAuthStateChange = nil
     }
 }
